@@ -115,27 +115,66 @@ public static LinkedList<Object> merge (LinkedList<Object> lsta,
 
 public static LinkedList<Object> sort (LinkedList<Object> lst) {
 	
+	return sortHelper(lst, new LinkedList<Object>(), new LinkedList<Object>(), new LinkedList<Object>());
 }
 
-private static LinkedList<Object> sortHelper(LinkedList<Object> lst, LinkedList<Object> lstA,
-																			LinkedList<Object> lstB){
-	if(lst.remove() == null){
-		return result;
+private static LinkedList<Object> sortHelper(LinkedList<Object> lst, LinkedList<Object> left, LinkedList<Object> right,
+										LinkedList<Object> result){
+	
+	if(lst.size() <= 1){
+		return lst;
 	}
 	else{
-		for(int i = 0; i < lst.size()/s; i++){
-			
+		for(int i = 0; i < lst.size()/2; i++){
+			left.add(lst.get(i));
 		}
+
+		for(int j = lst.size()/2; j < lst.size(); j++){
+			right.add(lst.get(j));
+		}
+
+		left = sort(left);
+		right = sort(right);
+		result = merge(left, right);
+		return result;	
 	}
 }
 
 public static LinkedList<Object> intersection (LinkedList<Object> lsta,
                                                LinkedList<Object> lstb) {
-	return null;
+	LinkedList<Object> result = new LinkedList<Object>();
+	lsta = sort(lsta);
+	lstb = sort(lstb);
+	ListIterator<Object> ita = lsta.listIterator();
+	ListIterator<Object> itb = lstb.listIterator();
+	
+	
+	while(ita.hasNext() && itb.hasNext()){
+		Object itema = ita.next();
+		Object itemb = itb.next();
+		if(((Comparable)itema).compareTo((Comparable)itemb) < 0){
+			itb.previous();
+		}
+		else if(((Comparable)itema).compareTo((Comparable)itemb) > 0){
+			ita.previous();
+		}
+		else{
+			result.add(itema);
+		}
+	}
+	return result;
 }
 
 public static LinkedList<Object> reverse (LinkedList<Object> lst) {
-	return null;
+	ListIterator<Object> it = lst.listIterator();
+	LinkedList<Object> result = new LinkedList<Object>();
+	
+	while(it.hasNext()){
+		Object item = it.next();
+		result.addFirst(item);
+	}
+	
+	return result;
 }
 
     // ****** your code ends here ******
