@@ -252,8 +252,8 @@ public class Cons {
 					maxbt((Object) rest((Cons) tree)));
 		} else if (numberp(tree)) {
 			return (Integer) tree;
-		} 
-			
+		}
+
 		return Integer.MIN_VALUE;
 
 	}
@@ -278,21 +278,22 @@ public class Cons {
 	public static boolean occurs(Object value, Object tree) {
 
 		return occursHelper(value, tree, false, false);
-		
 
 	}
 
-	private static boolean occursHelper(Object value, Object tree, boolean left, boolean right){
-		
-		if (value.equals(tree)) {//if tree is one
-			 return true;
-		} else if (consp(tree)) {//traverse left and right side
+	private static boolean occursHelper(Object value, Object tree,
+			boolean left, boolean right) {
+
+		if (value.equals(tree)) {// if tree is one
+			return true;
+		} else if (consp(tree)) {// traverse left and right side
 			left = occursHelper(value, lhs((Cons) tree), left, right);
 			right = occursHelper(value, rhs((Cons) tree), left, right);
 
 		}
 		return left || right;
 	}
+
 	public static Integer eval(Object tree) {
 		if (numberp(tree)) {
 			return (Integer) tree;
@@ -310,15 +311,12 @@ public class Cons {
 
 				return eval(lhs((Cons) tree)) + eval(rhs((Cons) tree));
 			}
-
-			if (op((Cons) tree).equals("*")) {
-				return eval(lhs((Cons) tree)) * eval(rhs((Cons) tree));
-			}
-
 			if (op((Cons) tree).equals("/")) {
 				return eval(lhs((Cons) tree)) / eval(rhs((Cons) tree));
 			}
-
+			if (op((Cons) tree).equals("*")) {
+				return eval(lhs((Cons) tree)) * eval(rhs((Cons) tree));
+			}
 			if (op((Cons) tree).equals("expt")) {
 				return pow(eval(lhs((Cons) tree)), eval(rhs((Cons) tree)));
 			}
@@ -374,27 +372,27 @@ public class Cons {
 		return cons(englishHelper(tree, "", ""), list());
 	}
 
-	private static String englishHelper(Object tree, String lhs, String rhs) {
+	private static String englishHelper(Object tree, String left, String right) {
 
 		if (consp(rhs((Cons) tree))) {
-			rhs = englishHelper(rhs((Cons) tree), lhs, rhs);
+			right = englishHelper(rhs((Cons) tree), left, right);
 		} else if (rhs((Cons) tree) == null) {
 			if (op((Cons) tree).equals("-")) {
-				lhs = "-1" + lhs;
+				left = "-1" + left;
 				return "the " + second(assoc(op((Cons) tree), engwords))
-						+ " of " + lhs;
+						+ " of " + left;
 			}
 		} else {
-			rhs = "" + rhs((Cons) tree);
+			right = "" + rhs((Cons) tree);
 		}
 
 		if (consp(lhs((Cons) tree))) {
-			lhs = englishHelper(lhs((Cons) tree), lhs, rhs);
+			left = englishHelper(lhs((Cons) tree), left, right);
 		} else {
-			lhs = "" + lhs((Cons) tree);
+			left = "" + lhs((Cons) tree);
 		}
-		return "the " + second(assoc(op((Cons) tree), engwords)) + " of " + lhs
-				+ " and " + rhs;
+		return "the " + second(assoc(op((Cons) tree), engwords)) + " of " + left
+				+ " and " + right;
 	}
 
 	public static String tojava(Object tree) {
@@ -402,35 +400,61 @@ public class Cons {
 	}
 
 	public static String tojavab(Object tree, int prec) {
-		  String lhs;
-	      String rhs;
-	      
-	      if(consp(lhs((Cons)tree))) {
-	    	  lhs = tojavab(lhs((Cons)tree),(Integer)first(rest(assoc(op((Cons)tree), opprec))));
-	      }
-	      else {
-	    	  lhs = "" + lhs((Cons)tree);
-	      }	       
-	      if(consp(rhs((Cons)tree))) {
-	    	  rhs = tojavab(rhs((Cons)tree),(Integer)first(rest(assoc(op((Cons)tree), opprec))));
-	      }
-	      else if(rhs((Cons)tree) == null && op((Cons)tree).equals("-")){
-	    	  return "(-" + lhs + ")";
-	      }
-	      else if(rhs((Cons)tree) == null){
-	    	  return "Math." + op((Cons)tree) + "(" + lhs + ")";
-	      }
-	      else {
-	    	  rhs = "" + rhs((Cons)tree);
-	      }
-	      
-	      if(prec > (Integer)first(rest(assoc(op((Cons)tree), opprec)))){
-	    	  return "(" + lhs + op((Cons)tree) + rhs + ")";
-	      }
-	      else{
-	    	  return lhs + op((Cons)tree) + rhs;
-	      }
-		
+		if (numberp(tree)) {
+			return tree.toString();
+		} else if (stringp(tree)) {
+			return (String) tree;
+		} else if (consp(tree)) {
+			String node = (String) op((Cons) tree);
+			if (node.equals("=")) {
+				return tojavab(lhs((Cons) tree), 1) + "="
+						+ tojavab(rhs((Cons) tree), 1);
+			} else if (node.equals("*")) {
+				if (prec >= (Integer) first(rest(assoc(op((Cons) tree), opprec)))) {
+					return "(" + tojavab(lhs((Cons) tree), 6) + node
+							+ tojavab(rhs((Cons) tree), 6) + ")";
+				} else {
+					return tojavab(lhs((Cons) tree), 6) + node
+							+ tojavab(rhs((Cons) tree), 6);
+				}
+
+			} else if (node.equals("+")) {
+				if (prec >= (Integer) first(rest(assoc(op((Cons) tree), opprec)))) {
+					return "(" + tojavab(lhs((Cons) tree), 5) + node
+							+ tojavab(rhs((Cons) tree), 5) + ")";
+				} else {
+					return tojavab(lhs((Cons) tree), 5) + node
+							+ tojavab(rhs((Cons) tree), 5);
+				}
+			} else if (node.equals("-")) {
+				if (rhs((Cons) tree) == null) {
+					return "(-" + tojavab(lhs((Cons) tree), 6) + ")";
+				} else {
+					if (prec >= (Integer) first(rest(assoc(op((Cons) tree),
+							opprec)))) {
+						return "(" + tojavab(lhs((Cons) tree), 5) + node
+								+ tojavab(rhs((Cons) tree), 5) + ")";
+					} else {
+						return tojavab(lhs((Cons) tree), 5) + node
+								+ tojavab(rhs((Cons) tree), 5);
+					}
+				}
+
+			} else if (node.equals("/")) {
+				if (prec >= (Integer) first(rest(assoc(op((Cons) tree), opprec)))) {
+					return "(" + tojavab(lhs((Cons) tree), 6) + node
+							+ tojavab(rhs((Cons) tree), 6) + ")";
+				} else {
+					return tojavab(lhs((Cons) tree), 6) + node
+							+ tojavab(rhs((Cons) tree), 6);
+				}
+			} else if (node.equals("sin")) {
+				return "Math.sin(" + tojavab(lhs((Cons) tree), prec) + ")";
+			} else if (node.equals("exp")) {
+				return "Math.exp(" + tojavab(lhs((Cons) tree), prec) + ")";
+			}
+		}
+		return "";
 	}
 
 	// ****** your code ends here ******
